@@ -59,7 +59,7 @@ export default function Home() {
   const [{ x, y }, set] = useSpring(() => ({ x: 0, y: 0 }))
   // const [{ x, y }, set] = useState({ x: 0, y: 0 })
 
-  const handleMouseMove = (event) => {
+  const handleMouseMove = (event: { clientX: number; clientY: number }) => {
     const cursorX = event.clientX - 31
     const cursorY = event.clientY - 134
     console.log('cursor', cursorX, cursorY)
