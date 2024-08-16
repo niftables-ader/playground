@@ -111,7 +111,7 @@ export default function Home() {
       }
     }
 
-    api.start({ x: newX, y: newY, config: {mass: 1, tension: 50, friction: 100} })
+    api.start({ x: newX, y: newY })
   }
 
   return (
