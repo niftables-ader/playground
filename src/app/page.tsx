@@ -76,7 +76,7 @@ export default function Home() {
     const centerY = window.innerHeight / 2
 
     if (Math.abs(centerX - cursorX) > 0.1 * window.innerWidth) {
-      let xDisplacment = cursorX - centerX
+      let xDisplacment = centerX - cursorX
       xDisplacment =
         xDisplacment > 0
           ? xDisplacment - 0.1 * window.innerWidth
@@ -94,7 +94,7 @@ export default function Home() {
     }
 
     if (Math.abs(centerY - cursorY) > 0.1 * window.innerHeight) {
-      let YDisplacment = cursorY - centerY
+      let YDisplacment = centerY - cursorY
       YDisplacment =
         YDisplacment > 0
           ? YDisplacment - 0.1 * window.innerHeight
@@ -111,7 +111,7 @@ export default function Home() {
       }
     }
 
-    api.start({ x: newX, y: newY })
+    api.start({ x: newX, y: newY, config: {mass: 1, tension: 50, friction: 100} })
   }
 
   return (
