@@ -2,7 +2,7 @@
 
 import { MouseEventHandler, useEffect, useState } from 'react'
 import Image from 'next/image'
-import { animated, useSpring } from '@react-spring/web'
+import { animated, useSpring, to } from '@react-spring/web'
 
 const WIDTH = 10000
 const HEIGHT = 4235
@@ -16,20 +16,20 @@ export default function Home() {
 
   useEffect(() => {
     const handleResize = () => {
-      const divWidth = 1080
-      const divHeight = 670
+      const windowWidth = window.innerWidth
+      const windowHeight = window.innerHeight
 
-      const imageHeightToDivWidth = divWidth * (1 / IMG_RATIO)
-      const imageWidthToDivHeight = divHeight * IMG_RATIO
+      const imageHeightToWindowWidth = windowWidth * (1 / IMG_RATIO)
+      const imageWidthToWindowHeight = windowHeight * IMG_RATIO
 
-      if (imageWidthToDivHeight < divWidth) {
-        setWidth(divWidth)
-        setHeight(imageHeightToDivWidth)
-        setScaleRatio(divWidth / 1920)
+      if (imageWidthToWindowHeight < windowWidth) {
+        setWidth(windowWidth)
+        setHeight(imageHeightToWindowWidth)
+        setScaleRatio(windowWidth / 1920)
       } else {
-        setWidth(imageWidthToDivHeight)
-        setHeight(divHeight)
-        setScaleRatio(divHeight / 940)
+        setWidth(imageWidthToWindowHeight)
+        setHeight(windowHeight)
+        setScaleRatio(windowHeight / 940)
       }
     }
 
@@ -47,58 +47,95 @@ export default function Home() {
 
   useEffect(() => {
     const handleResize = () => {
-      const divWidth = 1080
-      const divHeight = 670
-      setLeftDistance(width / 2 - divWidth / 2)
-      setTopDistance(height / 2 - divHeight / 2)
+      const windowWidth = window.innerWidth
+      const windowHeight = window.innerHeight
+      setLeftDistance(width / 2 - windowWidth / 2)
+      setTopDistance(height / 2 - windowHeight / 2)
     }
 
     handleResize()
+
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      window.removeEventListener('resize', handleResize)
+    }
   }, [width, height])
 
-  const [{ x, y }, set] = useSpring(() => ({ x: 0, y: 0 }))
-  // const [{ x, y }, set] = useState({ x: 0, y: 0 })
+  const [{ x, y }, api] = useSpring(() => ({
+    x: 0,
+    y: 0,
+  }))
 
   const handleMouseMove = (event: { clientX: number; clientY: number }) => {
-    const cursorX = event.clientX - 31
-    const cursorY = event.clientY - 134
-    console.log('cursor', cursorX, cursorY)
-    const centerX = 1070 / 2
-    const centerY = 660 / 2
+    let newX = 0,
+      newY = 0
+    const cursorX = event.clientX
+    const cursorY = event.clientY
+    const centerX = window.innerWidth / 2
+    const centerY = window.innerHeight / 2
 
-    // Calculate the offset from the center
-    const offsetX = (cursorX - centerX) / centerX
-    const offsetY = (cursorY - centerY) / centerY
-    console.log('offset', offsetX, offsetY)
+    if (Math.abs(centerX - cursorX) > 0.1 * window.innerWidth) {
+      let xDisplacment = cursorX - centerX
+      xDisplacment =
+        xDisplacment > 0
+          ? xDisplacment - 0.1 * window.innerWidth
+          : xDisplacment + 0.1 * window.innerWidth
 
-    // Update the spring with scaled values
-    set({ x: offsetX * 50, y: offsetY * 50 })
+      const movmentAreaLenght =
+        window.innerWidth * 0.9 - window.innerWidth * 0.6
+      newX = (xDisplacment * leftDistance) / movmentAreaLenght
+      // make sure no white bars appear
+      if (newX < 0) {
+        newX = Math.abs(newX) > leftDistance ? -leftDistance : newX
+      } else {
+        newX = Math.abs(newX) > leftDistance ? leftDistance : newX
+      }
+    }
+
+    if (Math.abs(centerY - cursorY) > 0.1 * window.innerHeight) {
+      let YDisplacment = cursorY - centerY
+      YDisplacment =
+        YDisplacment > 0
+          ? YDisplacment - 0.1 * window.innerHeight
+          : YDisplacment + 0.1 * window.innerHeight
+
+      const movmentAreaLenght =
+        window.innerHeight * 0.9 - window.innerHeight * 0.6
+      newY = (YDisplacment * topDistance) / movmentAreaLenght
+      // make sure no white bars appear
+      if (newY < 0) {
+        newY = Math.abs(newY) > topDistance ? -topDistance : newY
+      } else {
+        newY = Math.abs(newY) > topDistance ? topDistance : newY
+      }
+    }
+
+    api.start({ x: newX, y: newY })
   }
 
   return (
-    <div className="w-screen h-screen flex items-center justify-center">
-      <div className="relative w-[1080px] h-[670px] bg-black overflow-hidden">
-        <animated.div
-          className="absolute"
-          style={{
-            width: `${width}px`,
-            height: `${height}px`,
-            left: `-${leftDistance}px`,
-            top: `-${topDistance}px`,
-            transform: x.to((x) => `translate3d(${x}px, ${y.get()}px, 0)`),
-            // transform: `translate3d(${x}px, ${y}px, 0)`,
-          }}
-          onMouseMove={handleMouseMove}
-        >
-          <Image
-            src={'/wlppr.jpg'}
-            alt="wlppr"
-            width={width}
-            height={height}
-            style={{}}
-          />
-        </animated.div>
-      </div>
+    <div className="relative w-screen h-screen flex items-center justify-center overflow-hidden">
+      <animated.div
+        className="absolute"
+        style={{
+          width: `${width}px`,
+          height: `${height}px`,
+          left: `-${leftDistance}px`,
+          top: `-${topDistance}px`,
+          x,
+          y,
+        }}
+        onMouseMove={handleMouseMove}
+      >
+        <Image
+          src={'/wlppr.jpg'}
+          alt="wlppr"
+          width={width}
+          height={height}
+          style={{}}
+        />
+      </animated.div>
     </div>
   )
 }
