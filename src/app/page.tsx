@@ -13,6 +13,7 @@ export default function Home() {
   const [width, setWidth] = useState(0)
   const [height, setHeight] = useState(0)
   const [scaleRatio, setScaleRatio] = useState(1)
+  const [blur, setBlur] = useState(0)
 
   useEffect(() => {
     const handleResize = () => {
@@ -111,7 +112,19 @@ export default function Home() {
       }
     }
 
-    api.start({ x: newX, y: newY })
+    api.start({
+      x: newX,
+      y: newY,
+      config: { mass: 2, tension: 70, friction: 30 },
+      onChange(result, ctrl, item) {
+        let to = ctrl.springs.x.animation.to as number
+        to = !to ? ctrl.springs.y.animation.to as number : to
+        setBlur((Math.abs(to - x.get()) / 800) * 10)
+      },
+      onRest(result, ctrl, item) {
+        setBlur(0)
+      },
+    })
   }
 
   return (
@@ -123,6 +136,7 @@ export default function Home() {
           height: `${height}px`,
           left: `-${leftDistance}px`,
           top: `-${topDistance}px`,
+          filter: `blur(${blur}px)`,
           x,
           y,
         }}
